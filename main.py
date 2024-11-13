@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 
+st.set_page_config(layout="wide")
+
 df = pd.read_csv("Shark Tank India Dataset.csv")
 df.head()
 
@@ -63,17 +65,66 @@ shark_investment_df = pd.DataFrame(list(shark_investment.items()),columns=['Shar
 
 st.title('Shark Tank India - Total Investment by Each Shark (in Crs)')
 
-st.write("Total Deal Amount Invested by Shark (in Crs): ")
-st.dataframe(shark_investment_df)
+col1, col2, col3 = st.columns([1, 2, 2])
+
+with col1:
+    st.header("Filters")
+    # Example filter options
+    filter_shark = st.selectbox("Select Shark:", ['All', 'Ashneer', 'Anupam', 'Aman', 'Namita', 'Vineeta', 'Peyush', 'Ghazal'])
+
+with col2:
+
+    st.write("Total Deal Amount Invested by Shark (in Crs): ")
+    st.dataframe(shark_investment_df)
 
 #plotting graphs
+with col3:
 
-fig = px.bar(shark_investment_df,
-             x='Shark Name',
-             y = 'Total Investment (in Crs)',
-             title = "Total Investment by Each Shark",
-             labels = {'Shark Name': 'Shark', 'Total Investment': 'Total Investment (in Crs)'},
-             color = 'Shark Name',
-             color_continuous_scale= 'viridis'
-             )
-st.plotly_chart(fig)
+    fig = px.bar(shark_investment_df,
+                x='Shark Name',
+                y = 'Total Investment (in Crs)',
+                title = "Total Investment by Each Shark",
+                labels = {'Shark Name': 'Shark', 'Total Investment': 'Total Investment (in Crs)'},
+                color = 'Shark Name',
+                color_continuous_scale= 'viridis'
+                )
+    st.plotly_chart(fig)
+
+#Shreyashi Graph:
+
+shark_inv_count = {}
+
+for shark in names:
+    shark_inv_count[shark.replace("_deal","")] = df[shark].sum()
+
+shark_count_df = pd.DataFrame(list(shark_inv_count.items()),columns=['Shark Name','Total Investment (in Count)'])
+
+col4,col5,col6 = st.columns([1,2,3])
+with col6:
+
+    fig2 = px.bar(shark_count_df,
+                x='Shark Name',
+                y = 'Total Investment (in Count)',
+                title = "Total Number of Investment by Each Shark",
+                labels = {'Shark Name': 'Shark', 'Total Investment (in Count)':'Number of Investment'},
+                color = 'Shark Name',
+                color_continuous_scale= 'viridis'
+                )
+    fig2.update_layout(
+    height=350,  # height remains the same, but you can reduce it further if needed
+    width=700,   # adjust width to reduce overall length
+    margin=dict(l=60, r=20, t=30, b=60),  # tighter margins, especially at the bottom
+    #xaxis_tickangle=-45,  # Rotate x-axis labels for better fit
+    showlegend=False  # Hide legend if it's redundant (optional)
+    )
+    st.markdown("""
+    <style>
+    .streamlit-expanderHeader {
+        display: none;
+    }
+    .block-container {
+        padding-left: 5rem;  /* Adjust the value as needed to shift the chart right */
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    st.plotly_chart(fig2)
