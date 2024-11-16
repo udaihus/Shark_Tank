@@ -434,7 +434,8 @@ with col3:
                  color_continuous_scale='viridis')
     st.plotly_chart(fig)
 
-#3rd Graph
+
+#Average Equity 
 # Load the dataset
 file_path = 'Shark Tank India Dataset.csv' 
 data = pd.read_csv(file_path)
@@ -443,21 +444,17 @@ data = pd.read_csv(file_path)
 shark_columns = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_deal', 'peyush_deal', 'ghazal_deal']
 equity_column = 'equity_per_shark'
 
-# Calculate Total and Average Equity per Shark
+# Calculate Average Equity per Shark
 equity_data = {}
 for shark in shark_columns:
     shark_equity = data[data[shark] == 1][equity_column]
-    equity_data[shark.split('_')[0].capitalize()] = {
-        'Total Equity': shark_equity.sum(),
-        'Average Equity': shark_equity.mean()
-    }
+    equity_data[shark.split('_')[0].capitalize()] = shark_equity.mean()
 
 # Convert dictionary to DataFrame for easy table and plotting
-equity_df = pd.DataFrame(equity_data).T.reset_index()
-equity_df.columns = ['Shark', 'Total Equity', 'Average Equity']
+equity_df = pd.DataFrame(list(equity_data.items()), columns=['Shark', 'Average Equity'])
 
 # Display the title and the table in Streamlit
-st.subheader("Shark Tank India - Equity Data Table")
+st.subheader("Shark Tank India - Average Equity Data Table")
 st.write("Select multiple sharks or use 'All' to view all sharks' data.")
 
 # List of shark names with "All" as the first option
@@ -475,18 +472,7 @@ else:
 # Display the filtered table
 st.write(filtered_df)
 
-# Plot an interactive bar chart for Total Equity with a single color
-fig_total_equity = px.bar(
-    filtered_df,
-    x='Shark',
-    y='Total Equity',
-    title="Total Equity per Shark",
-    labels={'Total Equity': 'Total Equity (%)'},
-    hover_data={'Total Equity': ':.2f'},
-    color_discrete_sequence=['Purple']  
-)
-
-# Plot an interactive bar chart for Average Equity with a different single color
+# Plot an interactive bar chart for Average Equity
 fig_average_equity = px.bar(
     filtered_df,
     x='Shark',
@@ -494,18 +480,16 @@ fig_average_equity = px.bar(
     title="Average Equity per Shark",
     labels={'Average Equity': 'Average Equity (%)'},
     hover_data={'Average Equity': ':.2f'},
-    color_discrete_sequence=['Orange'] 
+    color_discrete_sequence=['Purple'] 
 )
 
-# Display the filtered charts
-st.plotly_chart(fig_total_equity)
+# Display the filtered chart
 st.plotly_chart(fig_average_equity)
-
 
 
     
 
-
+# Top 5 
 # Load the dataset
 df = pd.read_csv("Shark Tank India Dataset.csv")
 
@@ -571,3 +555,8 @@ fig.update_layout(
 st.plotly_chart(fig)
 
 #Shreyashi graph end -------------------------------------------------------------------------------
+
+
+
+
+
