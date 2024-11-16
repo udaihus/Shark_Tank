@@ -75,6 +75,7 @@ scorecard_h = f"""
 
 #------------------------------------------------------------------------------------------------------
 # Hussain Udaipurwala
+# Highest amount invested - scorecard
 
 if selected_shark =='ALL':
     highest_Deal = df[df[names].sum(axis=1) > 0]['deal_amount'].max()
@@ -91,7 +92,59 @@ scorecard_ht = f"""
     <h1 style="color: #4CAF50; text-align: left; font-size: 20px; font-weight: bold; margin-top: 5px;">{highest_Deal} Lakhs</h1>
 </div>
 """
+# --------------------------------------------------------------------------------------------------------
+# Calculate the average equity for the selected shark or all sharks
 
+equity_column = 'equity_per_shark'
+if selected_shark == 'ALL':
+    # For all sharks, calculate the average equity where shark_deal == 1
+    average_equity = (df[names].multiply(df[equity_column], axis=0) * df[names].eq(1)).sum(axis=0)
+    total_deals = (df[names] == 1).sum(axis=0)
+    average_equity_all = (average_equity / total_deals).round(2)
+    he = "Average Equity by All Sharks"
+    avg_equity = round(average_equity_all.mean(), 2)  # Calculate overall average for all sharks
+else:
+    selected_shark_col = f"{selected_shark.lower()}_deal"
+    shark_deals = df[df[selected_shark_col] == 1]
+    
+    # Calculate the average equity for the selected shark
+    avg_equity = round(shark_deals[equity_column].mean(), 2)
+    he = f"Average Equity by - {selected_shark}"
+
+# Create a scorecard box for displaying the result
+scorecard_hd = f"""
+<div style="background-color: #f0f4f8; padding: 10px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 170px; margin-top: 10px; margin-right: 5px; border: 3px solid yellow;">
+    <h2 style="color: #333; text-align: left; font-size: 14px; font-weight: bold; margin-bottom: 5px;">{he}</h2>
+    <h1 style="color: #4CAF50; text-align: left; font-size: 20px; font-weight: bold; margin-top: 5px;">{avg_equity}%</h1>
+</div>
+"""
+#-------------------------------------------------------------------------------------------------------------------
+
+# Calculate the average deal amount invested by sharks
+if selected_shark == 'ALL':
+    # Filter deals where any shark has invested (sum(axis=1) > 0 means any shark has invested in the deal)
+    total_i = df[df[names].sum(axis=1) > 0]['deal_amount'].sum()
+    total_deals = df[df[names].sum(axis=1) > 0].shape[0]  # Count of deals where any shark has invested
+    avg_deal_amount = total_i / total_deals if total_deals > 0 else 0
+    head_dealll = "Average Deal Amount by All Sharks"
+else:
+    selected_shark_col = f"{selected_shark.lower()}_deal"
+    # Filter the deals where the selected shark has invested
+    shark_deals = df[df[selected_shark_col] == 1]
+    total_i = shark_deals['deal_amount'].sum()
+    total_deals = shark_deals.shape[0]  # Number of deals by the selected shark
+    avg_deal_amount = total_i / total_deals if total_deals > 0 else 0
+    head_dealll = f"Average Deal Amount by {selected_shark}"
+
+# Create a scorecard box to display the average deal amount
+scorecard_hhht = f"""
+<div style="background-color: #f0f4f8; padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 200px; margin-top: 10px; margin-right: 5px; border: 3px solid yellow;">
+    <h2 style="color: #333; text-align: left; font-size: 14px; font-weight: bold; margin-bottom: 5px;">{head_dealll}</h2>
+    <h1 style="color: #4CAF50; text-align: left; font-size: 20px; font-weight: bold; margin-top: 5px;">{round(avg_deal_amount, 2)} Lakhs</h1>
+</div>
+"""
+
+#------------------------------------------------------------------------------------------------------------------------------
 # Display the scorecard box
 col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
 
@@ -103,6 +156,12 @@ with col2:
 
 with col3:
     st.markdown(scorecard_ht, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(scorecard_hd, unsafe_allow_html=True)
+
+with col5:
+    st.markdown(scorecard_hhht, unsafe_allow_html=True)
 
 #----------------------------------------------------------------------------------------------------
 #Hussain's Code:
@@ -198,335 +257,22 @@ with col6[0]:
     st.plotly_chart(fig)
 
 #----------------------------------------------------------------------------------------------------
-# Nissi Grace:
-
-# Map shark column names to proper names for display
+# Nissi Grace
 # Shark names and mappings
-# shark_names = {
-#     'ashneer_deal': 'Ashneer',
-#     'anupam_deal': 'Anupam',
-#     'aman_deal': 'Aman',
-#     'namita_deal': 'Namita',
-#     'vineeta_deal': 'Vineeta',
-#     'peyush_deal': 'Peyush',
-#     'ghazal_deal': 'Ghazal'
-# }
-
-# # Streamlit graph Title
-# st.markdown(
-#     "<h3 style='text-align: center; color: #33;'>Shark Equity Analysis for Brands with Deals</h3>",
-#     unsafe_allow_html=True
-# )
-
-# # Sidebar for Shark Selection
-# selected_shark_name = st.sidebar.selectbox("Select a Shark to Analyze", list(shark_names.values()))
-
-# # Get the corresponding column name for the selected shark
-# selected_shark_column = [key for key, value in shark_names.items() if value == selected_shark_name][0]
-
-# # Filter rows where the selected shark made a deal
-# shark_deals_df = df[df[selected_shark_column] == 1]
-
-# # Visualization
-# if not shark_deals_df.empty:
-#     # Extract required columns for the plot
-#     brands = shark_deals_df['brand_name']  # X-axis: Brand names
-#     ask_equity = shark_deals_df['ask_equity']  # Pitcher's asked equity
-#     equity_per_shark = shark_deals_df['equity_per_shark']  # Average equity per shark
-#     deal_equity = shark_deals_df['deal_equity']  # Final equity in the deal
-
-#     # Create a line plot with a black background
-#     fig, ax = plt.subplots(figsize=(6, 4), facecolor='black')  # Smaller size and black background
-#     ax.set_facecolor('black')  # Set the axis background color to black
-
-#     # Plotting the lines
-#     ax.plot(brands, ask_equity, marker='o', label='Ask Equity (%)', color='blue')
-#     ax.plot(brands, equity_per_shark, marker='o', label='Equity Per Shark (%)', color='orange')
-#     ax.plot(brands, deal_equity, marker='o', label='Deal Equity (%)', color='green')
-
-#     # Customize the plot
-#     ax.set_title(f'Equity Comparison for {selected_shark_name}', fontsize=16, color='white')
-#     ax.set_xlabel('Brand Name', fontsize=12, color='white')
-#     ax.set_ylabel('Equity (%)', fontsize=12, color='white')
-#     ax.legend(fontsize=10, loc='upper left', facecolor='black', edgecolor='white', labelcolor='white')
-
-#     # Remove grid lines
-#     ax.grid(False)
-
-#     # Rotate x-axis labels and set them in white color
-#     plt.xticks(rotation=90, ha='right', color='white')
-#     plt.yticks(color='white')
-
-#     # Display the plot in Streamlit
-#     st.pyplot(fig)
-
-# Shark names and mappings
-shark_names = {
-    'ashneer_deal': 'Ashneer',
-    'anupam_deal': 'Anupam',
-    'aman_deal': 'Aman',
-    'namita_deal': 'Namita',
-    'vineeta_deal': 'Vineeta',
-    'peyush_deal': 'Peyush',
-    'ghazal_deal': 'Ghazal'
-}
-
-# Streamlit graph Title
-st.markdown(
-    "<h3 style='text-align: center; color: #33;'>Shark Equity Analysis for Brands with Deals</h3>",
-    unsafe_allow_html=True
-)
-
-# Sidebar for Shark Selection
-selected_shark_name = st.sidebar.selectbox("Select a Shark to Analyze", list(shark_names.values()))
-
-# Get the corresponding column name for the selected shark
-selected_shark_column = [key for key, value in shark_names.items() if value == selected_shark_name][0]
-
-# Filter rows where the selected shark made a deal
-shark_deals_df = df[df[selected_shark_column] == 1]
-
-# Visualization
-if not shark_deals_df.empty:
-    # Extract required columns for the plot
-    brands = shark_deals_df['brand_name']  # X-axis: Brand names
-    ask_equity = shark_deals_df['ask_equity']  # Pitcher's asked equity
-    equity_per_shark = shark_deals_df['equity_per_shark']  # Average equity per shark
-    deal_equity = shark_deals_df['deal_equity']  # Final equity in the deal
-
-    # Create a figure using Plotly
-    fig = go.Figure()
-
-    # Add lines with markers for Ask Equity, Equity per Shark, and Deal Equity
-    fig.add_trace(go.Scatter(
-        x=brands,
-        y=ask_equity,
-        mode='lines+markers',
-        name='Ask Equity (%)',
-        line=dict(color='blue', width=4, dash='dot'),  # Blue dashed line for Ask Equity
-        marker=dict(size=10, symbol='square', color='blue', line=dict(width=2, color='black')),
-        opacity=0.8,
-        yaxis='y1'
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=brands,
-        y=equity_per_shark,
-        mode='lines+markers',
-        name='Equity Per Shark (%)',
-        line=dict(color='orange', width=4, dash='dash'),  # Orange dashed line for Equity per Shark
-        marker=dict(size=10, symbol='circle', color='orange', line=dict(width=2, color='black')),
-        opacity=0.8,
-        yaxis='y1'
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=brands,
-        y=deal_equity,
-        mode='lines+markers',
-        name='Deal Equity (%)',
-        line=dict(color='green', width=4),  # Solid green line for Deal Equity
-        marker=dict(size=10, symbol='diamond', color='green', line=dict(width=2, color='black')),
-        opacity=0.8,
-        yaxis='y1'
-    ))
-
-    # Update the layout with the black background, no grid lines, and two y-axes
-    fig.update_layout(
-        title=f'Equity Comparison for {selected_shark_name}',
-        xaxis_title="Brand Name",
-        yaxis_title="Equity (%)",
-        plot_bgcolor='black',  # Black background for the plot
-        template="plotly_dark",  # Dark theme for the entire plot
-        margin=dict(l=50, r=50, t=40, b=60),  # Adjust margins to prevent clipping
-        showlegend=True,
-        legend=dict(x=0.8, y=0.1, traceorder='normal', orientation='h'),
-        xaxis=dict(
-            tickmode='array',
-            tickvals=brands,
-            ticktext=brands,
-            tickangle=90,
-            tickfont=dict(color='white'),  # White color for X-axis labels
-            showgrid=False,  # Remove grid lines
-            zeroline=False  # Remove the zero line
-        ),
-        yaxis=dict(
-            title="Equity (%)",
-            showgrid=True,
-            gridcolor='rgba(255, 255, 255, 0.1)',  # Light grid color for readability
-            gridwidth=1,
-            tickfont=dict(color='white'),  # White color for Y-axis labels
-            zeroline=False  # Remove the zero line
-        ),
-        # Optional: Add secondary y-axis if required for another metric (e.g., deal amount or count)
-        # yaxis2=dict(
-        #     title="Deal Amount",
-        #     overlaying="y",
-        #     side="right",
-        #     showgrid=False,
-        #     tickfont=dict(color='white')
-        # )
-    )
-
-    # Display the plot in Streamlit
-    st.plotly_chart(fig)
-
-
-#----------------------------------------------------------------------------------------------------
-# Neetu Kumari:
-# Episode wise deal amount and count of deal # Line plot
-
-#-----------------------------------------------------------------------------------------------------
-
-
-
-
-#Shreyashi Graph strat---------------------------------------------------------------------------------------:
-
-# Load your dataset
-data = pd.read_csv("Shark Tank India Dataset.csv")
-
-# List of shark names to be used as column identifiers for investments
-names = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_deal', 'peyush_deal', 'ghazal_deal']
-
-# Calculate how many brands each shark invested in (i.e., count of deals)
-shark_investment_count = {}
-
-for shark in names:
-    shark_deals = data[data[shark] == 1]  # Filter data for rows where the shark made a deal
-    total_deals = shark_deals.shape[0]  # Count the number of rows (deals) the shark has made
-    shark_investment_count[shark.replace('_deal', '')] = total_deals  # Add shark name and number of deals
-
-# Create a DataFrame to store shark investment data (count of deals)
-shark_investment_count_df = pd.DataFrame(list(shark_investment_count.items()), columns=['Shark Name', 'Total Brands Invested'])
-
-# Display the title of the dashboard
-st.title('Shark Tank India - Number of Brands Invested by Each Shark')
-
-# Create columns for layout
-col1, col2, col3 = st.columns([1, 2, 2])
-
-# Sidebar for filtering sharks
-with col1:
-    #st.header("Filters")
-    # Filter selection for sharks
-    filter_shark = st.selectbox("Select Shark Name:", ['All'] + list(shark_investment_count.keys()))
-
-# Display total investment data (number of brands invested)
-with col2:
-    st.write("Total Number of Brands Invested by Shark: ")
-
-    # Filter data based on selected shark
-    if filter_shark != 'All':
-        filtered_data = shark_investment_count_df[shark_investment_count_df['Shark Name'] == filter_shark]
-        st.dataframe(filtered_data)  # Display filtered data
-    else:
-        st.dataframe(shark_investment_count_df)  # Display all data
-
-# Plot the bar chart of number of brands invested by each shark
-with col3:
-    fig = px.bar(shark_investment_count_df,
-                 x='Shark Name',
-                 y='Total Brands Invested',
-                 title="Number of Brands Invested by Each Shark",
-                 labels={'Shark Name': 'Shark', 'Total Brands Invested': 'Number of Brands Invested'},
-                 color='Shark Name',
-                 color_continuous_scale='viridis')
-    st.plotly_chart(fig)
-
-#3rd Graph
-# Load the dataset
-file_path = 'Shark Tank India Dataset.csv' 
-data = pd.read_csv(file_path)
-
-# Define the columns related to shark deals and equity
-shark_columns = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_deal', 'peyush_deal', 'ghazal_deal']
-equity_column = 'equity_per_shark'
-
-# Calculate Total and Average Equity per Shark
-equity_data = {}
-for shark in shark_columns:
-    shark_equity = data[data[shark] == 1][equity_column]
-    equity_data[shark.split('_')[0].capitalize()] = {
-        'Total Equity': shark_equity.sum(),
-        'Average Equity': shark_equity.mean()
-    }
-
-# Convert dictionary to DataFrame for easy table and plotting
-equity_df = pd.DataFrame(equity_data).T.reset_index()
-equity_df.columns = ['Shark', 'Total Equity', 'Average Equity']
-
-# Display the title and the table in Streamlit
-st.subheader("Shark Tank India - Equity Data Table")
-st.write("Select multiple sharks or use 'All' to view all sharks' data.")
-
-# List of shark names with "All" as the first option
-shark_options = ['All'] + equity_df['Shark'].tolist()
-
-# Multi-select box for choosing multiple sharks, with "All" option
-selected_sharks = st.multiselect("Select Shark Names:", options=shark_options, default=['All'])
-
-# Check if "All" is selected
-if "All" in selected_sharks:
-    filtered_df = equity_df  # Show all sharks
-else:
-    filtered_df = equity_df[equity_df['Shark'].isin(selected_sharks)]  # Filter based on selected sharks
-
-# Display the filtered table
-st.write(filtered_df)
-
-# Plot an interactive bar chart for Total Equity with a single color
-fig_total_equity = px.bar(
-    filtered_df,
-    x='Shark',
-    y='Total Equity',
-    title="Total Equity per Shark",
-    labels={'Total Equity': 'Total Equity (%)'},
-    hover_data={'Total Equity': ':.2f'},
-    color_discrete_sequence=['Purple']  
-)
-
-# Plot an interactive bar chart for Average Equity with a different single color
-fig_average_equity = px.bar(
-    filtered_df,
-    x='Shark',
-    y='Average Equity',
-    title="Average Equity per Shark",
-    labels={'Average Equity': 'Average Equity (%)'},
-    hover_data={'Average Equity': ':.2f'},
-    color_discrete_sequence=['Orange'] 
-)
-
-# Display the filtered charts
-st.plotly_chart(fig_total_equity)
-st.plotly_chart(fig_average_equity)
-
-
-
-    
-
-
-# Load the dataset
-df = pd.read_csv("Shark Tank India Dataset.csv")
-
-# Function to get top 5 brands for a selected shark based on investment
+# Sidebar for shark selection
 def top_brands_per_shark(shark_column, amount_column):
     shark_investments = df[df[shark_column] > 0][['brand_name', amount_column]]
     top_brands = shark_investments.sort_values(by=amount_column, ascending=False).head(5)
     return top_brands
 
-# Streamlit app with single select for selecting shark
-st.title("Top 5 Brands per Shark by Investment Amount")
-
-# Sidebar for selecting a single shark for plotting
-st.sidebar.header("Select Shark for Plotting")
-shark_selection_for_plot = st.sidebar.selectbox(
-    "Select Shark to Plot Investment",
-    ["Ashneer", "Anupam", "Aman", "Namita", "Vineeta", "Peyush", "Ghazal"],
-    index=0  # Default to Ashneer (index=0)
+st.sidebar.header("Select Shark for Visualization")
+shark_selection = st.sidebar.selectbox(
+    "Select a Shark", 
+    ["Ashneer", "Anupam", "Aman", "Namita", "Vineeta", "Peyush", "Ghazal"], 
+    index=0  # Default to Ashneer
 )
 
-# Mapping of sharks to their respective deal columns in the dataset
+# Shark-deal mapping
 sharks = {
     "Ashneer": "ashneer_deal",
     "Anupam": "anupam_deal",
@@ -537,37 +283,195 @@ sharks = {
     "Ghazal": "ghazal_deal"
 }
 
-# Display the top 5 brands for the selected shark
-selected_shark_column = sharks[shark_selection_for_plot]
-top_brands = top_brands_per_shark(selected_shark_column, 'deal_equity')
+# Get the selected shark's column
+selected_shark_column = sharks[shark_selection]
 
-# Plotting with Plotly (interactive bar chart)
-fig = px.bar(
-    top_brands, 
-    x='brand_name', 
-    y='deal_equity', 
-    title=f"Top 5 Brands for {shark_selection_for_plot} by Deal Equity",
-    labels={'deal_equity': 'Deal Equity', 'brand_name': 'Brand Name'},
-    color='brand_name',  # Different colors for each bar
-    hover_data={'deal_equity': True}  # Show deal equity on hover
-)
+# Filter data for the selected shark's deals
+shark_deals = df[df[selected_shark_column] > 0]
 
-# Customize the layout for better readability
-fig.update_layout(
-    xaxis_title="Brand Name",
-    yaxis_title="Deal Equity",
-    xaxis_tickangle=45,  # Rotate x-axis labels
-    legend_title="Brand Names",  # Title for the legend
-    legend=dict(
-        x=1.02,  # Place the legend outside the chart area (to the right)
-        y=1,  # Align the legend at the top-right corner
-        bgcolor="rgba(255,255,255,0.8)",  # Semi-transparent background for the legend
-        bordercolor="Black",
-        borderwidth=1
+# --- Visualization 1: Line Plot ---
+
+st.subheader(f"Equity Comparison for {shark_selection}")
+
+if not shark_deals.empty:
+    # Line plot for `ask_equity`, `equity_per_shark`, and `deal_equity`
+    line_fig = px.line(
+        shark_deals, 
+        x="brand_name", 
+        y=["ask_equity", "equity_per_shark", "deal_equity"], 
+        title=f"Equity Metrics for {shark_selection}",
+        labels={"value": "Equity (%)", "variable": "Equity Type"},
+        markers=True,  # Add markers for each point
+        color_discrete_map={
+            "ask_equity": "red",
+            "equity_per_shark": "blue",
+            "deal_equity": "green"
+        }
     )
+    line_fig.update_layout(
+        xaxis_title="Brand Name",
+        yaxis_title="Equity (%)",
+        xaxis_tickangle=90  # Rotate x-axis labels
+    )
+    st.plotly_chart(line_fig, use_container_width=True) 
+#-----------------------------------------------------------------------------------------------------
+# nissi  and shreyashi
+# --- Visualization 2: Bar Graph ---
+st.subheader(f"Top 5 Brands for {shark_selection} by Deal Equity")
+
+# Get top 5 brands for the selected shark
+top_brands = top_brands_per_shark(selected_shark_column, "deal_equity")
+
+if not top_brands.empty:
+    bar_fig = px.bar(
+        top_brands,
+        x="brand_name",
+        y="deal_equity",
+        title=f"Top 5 Brands for {shark_selection}",
+        labels={"deal_equity": "Deal Equity", "brand_name": "Brand Name"},
+        color="brand_name",  # Different colors for each bar
+        hover_data={"deal_equity": True}  # Show deal equity on hover
+    )
+    bar_fig.update_layout(
+        xaxis_title="Brand Name",
+        yaxis_title="Deal Equity",
+        xaxis_tickangle=45,  # Rotate x-axis labels
+        legend_title="Brand Names",
+        bargap=0.4,
+        legend=dict(
+            x=1.02,  # Place the legend outside the chart area
+            y=1,
+            bgcolor="rgba(255,255,255,0.8)",  # Semi-transparent legend background
+            bordercolor="Black",
+            borderwidth=1
+        )
+    )
+    st.plotly_chart(bar_fig, use_container_width=True)
+else:
+    st.warning(f"No top brands found for {shark_selection}.")
+
+#----------------------------------------------------------------------------------------------------
+#Nissi Grace
+
+# Function to calculate shark participation and deal frequencies
+def shark_participation_and_deal_counts():
+    # Mapping of sharks to their respective presence and deal columns
+    sharks = {
+        "Ashneer": ["ashneer_present", "ashneer_deal"],
+        "Anupam": ["anupam_present", "anupam_deal"],
+        "Aman": ["aman_present", "aman_deal"],
+        "Namita": ["namita_present", "namita_deal"],
+        "Vineeta": ["vineeta_present", "vineeta_deal"],
+        "Peyush": ["peyush_present", "peyush_deal"],
+        "Ghazal": ["ghazal_deal"]  # Ghazal only has a 'deal' column
+    }
+    
+    # Dictionaries to store counts for participation and deal
+    participation_counts = {shark: 0 for shark in sharks}
+    deal_counts = {shark: 0 for shark in sharks}
+    
+    # Iterate through each row to count participation and deal presence
+    for _, row in df.iterrows():
+        for shark, columns in sharks.items():
+            # Count participation (if presence column exists and is 1)
+            if len(columns) > 1 and row[columns[0]] == 1:  # Check if presence column exists
+                participation_counts[shark] += 1
+            # Count deals (always check if deal column exists)
+            if row[columns[-1]] == 1:  # Use the last column in the list, which is always a deal column
+                deal_counts[shark] += 1
+    
+    return participation_counts, deal_counts
+
+# Get the participation and deal counts for each shark
+participation_counts, deal_counts = shark_participation_and_deal_counts()
+
+# Create columns for displaying the pie chart and the table side by side
+col1, col2 = st.columns(2)
+
+# In the first column, display the pie chart for shark deal participation distribution
+with col1:
+    total_deals = sum(deal_counts.values())  # Total deals across all sharks
+    st.subheader("Shark Deal Participation Across All Pitches")
+    
+    # Calculate the percentage of deals for each shark
+    deal_percentages = {shark: count / total_deals * 100 for shark, count in deal_counts.items()}
+    
+    fig, ax = plt.subplots(figsize=(5, 5))  # Smaller pie chart
+    wedges, texts, autotexts = ax.pie(deal_percentages.values(), labels=deal_percentages.keys(),
+                                      autopct='%1.1f%%', startangle=90, colors=sns.color_palette("Set2", len(deal_percentages)))
+    ax.set_title(f"Shark Deal Participation Percentage\nTotal Deals: {total_deals}")
+    
+    # Add legend for the deal chart
+    ax.legend(wedges, deal_percentages.keys(), title="Sharks", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+    st.pyplot(fig)
+
+# In the second column, display the shark participation and deal summary table
+with col2:
+    # Create a DataFrame to summarize participation and deals
+    sharks_summary = pd.DataFrame({
+        'Shark': list(participation_counts.keys()),
+        'Total Presence (Pitches)': list(participation_counts.values()),
+        'Total Deals': list(deal_counts.values())
+    })
+
+    # Display the table with background color gradient for better readability
+    st.subheader("Shark Participation and Deal Summary")
+    st.dataframe(sharks_summary.style.background_gradient(cmap='Blues', axis=0), use_container_width=True)# Neetu Kumari:
+# Episode wise deal amount and count of deal # Line plot
+
+#-----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
+#shreyshi code
+
+# List of shark columns (each representing a shark's deal)
+shark_columns = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_deal', 'peyush_deal', 'ghazal_deal']
+equity_column = 'equity_per_shark'
+
+# Calculate Total and Average Equity per Shark
+equity_data = {}
+for shark in shark_columns:
+    # Get the equity for the shark where their deal is 1 (participated in the deal)
+    shark_equity = df[df[shark] == 1][equity_column]
+    
+    # Store the total and average equity for the shark
+    equity_data[shark.split('_')[0].capitalize()] = {
+        'Total Equity': shark_equity.sum(),
+        'Average Equity': shark_equity.mean()
+    }
+
+# Convert dictionary to DataFrame for easy table and plotting
+equity_df = pd.DataFrame(equity_data).T.reset_index()
+equity_df.columns = ['Shark', 'Total Equity', 'Average Equity']
+
+# Display the title and the table in Streamlit (if you were using Streamlit)
+# st.subheader("Shark Tank India - Equity Data Table")
+# st.write(equity_df)
+
+# Plot an interactive bar chart for Total Equity with a single color
+# fig_total_equity = px.bar(
+#     equity_df,
+#     x='Shark',
+#     y='Total Equity',
+#     title="Total Equity per Shark",
+#     labels={'Total Equity': 'Total Equity (%)'},
+#     hover_data={'Total Equity': ':.2f'},
+#     color_discrete_sequence=['Purple']  
+# )
+
+# Plot an interactive bar chart for Average Equity with a different single color
+fig_average_equity = px.bar(
+    equity_df,
+    x='Shark',
+    y='Average Equity',
+    title="Average Equity per Shark",
+    labels={'Average Equity': 'Average Equity (%)'},
+    hover_data={'Average Equity': ':.2f'},
+    color_discrete_sequence=['Orange'] 
 )
 
-# Display the interactive plot in Streamlit
-st.plotly_chart(fig)
+# Display the total equity chart
+# st.plotly_chart(fig_total_equity)
 
-#Shreyashi graph end -------------------------------------------------------------------------------
+# Display the average equity chart
+st.plotly_chart(fig_average_equity)
+
