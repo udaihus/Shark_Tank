@@ -256,11 +256,6 @@ with col6[0]:
 # Nissi Grace
 
 
-df['metric'] = (df['deal_amount'] * df['deal_equity']) / (df['total_sharks_invested']*100)
-def top_brands_per_shark(shark_column, amount_column): 
-    shark_investments = df[df[shark_column] > 0][['brand_name', 'metric']] 
-    top_brands = shark_investments.sort_values(by='metric', ascending=False).head(5)
-    return top_brands 
 
 shark_selection = st.sidebar.selectbox(
     "Select a Shark for individual Visualization", 
@@ -309,8 +304,14 @@ if not shark_deals.empty:
     )
     st.plotly_chart(line_fig, use_container_width=True) 
 #-----------------------------------------------------------------------------------------------------
-# nissi  and shreyashi
-# --- Visualization 2: Bar Graph ---
+# nissi
+# --- Visualization 2: Bar Graph for top 5 brands for each shark ---
+df['metric'] = (df['deal_amount'] * df['deal_equity']) / (df['total_sharks_invested']*100)
+def top_brands_per_shark(shark_column, amount_column): 
+    shark_investments = df[df[shark_column] > 0][['brand_name', 'metric']] 
+    top_brands = shark_investments.sort_values(by='metric', ascending=False).head(5)
+    return top_brands 
+
 st.markdown(f"<h3 style='text-align: center;color: #4CAF50;'>Top 5 Brands for {shark_selection} by Value of Equity</h3>", unsafe_allow_html=True)
 
 top_brands = top_brands_per_shark(selected_shark_column, "metric")
@@ -319,22 +320,21 @@ if not top_brands.empty:
     bar_fig = px.bar(
         top_brands,
         x="brand_name",
-        y="metric",  # Changed to use the new metric
-        #title=f"Top 5 Brands for {shark_selection} by Value of equity",
+        y="metric",  
         labels={"metric": "Ownership Value", "brand_name": "Brand Name"},
         color="brand_name",  # Different colors for each bar
-        hover_data={"metric": True}  # Show metric on hover
+        hover_data={"metric": True}   
     )
     bar_fig.update_layout(
         xaxis_title="Brand Name",
-        yaxis_title="Ownership Value",  # Changed to reflect the new metric
-        xaxis_tickangle=45,  # Rotate x-axis labels
+        yaxis_title="Ownership Value",  
+        xaxis_tickangle=45,  #  
         legend_title="Brand Names",
         bargap=0.4,
         legend=dict(
-            x=1.02,  # Place the legend outside the chart area
+            x=1.02,  
             y=1,
-            bgcolor="rgba(255,255,255,0.8)",  # Semi-transparent legend background
+            bgcolor="rgba(255,255,255,0.8)",   
             bordercolor="Black",
             borderwidth=1
         )
@@ -347,8 +347,7 @@ else:
 #Nissi Grace
 
 # Function to calculate shark participation and deal frequencies
-def shark_participation_and_deal_counts():
-    # Mapping of sharks to their respective presence and deal columns
+def shark_participation_and_deal_counts(): 
     sharks = {
         "Ashneer": ["ashneer_present", "ashneer_deal"],
         "Anupam": ["anupam_present", "anupam_deal"],
@@ -357,50 +356,35 @@ def shark_participation_and_deal_counts():
         "Vineeta": ["vineeta_present", "vineeta_deal"],
         "Peyush": ["peyush_present", "peyush_deal"],
         "Ghazal": ["ghazal_deal"]  # Ghazal only has a 'deal' column
-    }
+    } 
     
-    # Dictionaries to store counts for participation and deal
     participation_counts = {shark: 0 for shark in sharks}
     deal_counts = {shark: 0 for shark in sharks}
-    
-    # Iterate through each row to count participation and deal presence
+     
     for _, row in df.iterrows():
-        for shark, columns in sharks.items():
-            # Count participation (if presence column exists and is 1)
-            if len(columns) > 1 and row[columns[0]] == 1:  # Check if presence column exists
-                participation_counts[shark] += 1
-            # Count deals (always check if deal column exists)
-            if row[columns[-1]] == 1:  # Use the last column in the list, which is always a deal column
+        for shark, columns in sharks.items(): 
+            if len(columns) > 1 and row[columns[0]] == 1:   
+                participation_counts[shark] += 1 
+            if row[columns[-1]] == 1:  
                 deal_counts[shark] += 1
     
     return participation_counts, deal_counts
 
-# Get the participation and deal counts for each shark
 participation_counts, deal_counts = shark_participation_and_deal_counts()
-
-# Create columns for displaying the pie chart and the table side by side
 col1, col2 = st.columns(2)
-
-# In the first column, display the pie chart for shark deal participation distribution
 with col1:
-    total_deals = sum(deal_counts.values())  # Total deals across all sharks
-    st.subheader("Shark Deals Across All Pitches")
-    
-    # Calculate the percentage of deals for each shark
+    total_deals = sum(deal_counts.values())   
+    st.subheader("Shark Deals Across All Pitches") 
     deal_percentages = {shark: count / total_deals * 100 for shark, count in deal_counts.items()}
-    
-    fig, ax = plt.subplots(figsize=(5, 5))  # Smaller pie chart
+    fig, ax = plt.subplots(figsize=(5, 5))  
     wedges, texts, autotexts = ax.pie(deal_percentages.values(), labels=deal_percentages.keys(),
                                       autopct='%1.1f%%', startangle=90, colors=sns.color_palette("Set2", len(deal_percentages)))
     ax.set_title(f"Shark Deal Percentage\nTotal Deals: {total_deals}")
-    
-    # Add legend for the deal chart
     ax.legend(wedges, deal_percentages.keys(), title="Sharks", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
     st.pyplot(fig)
 
 # In the second column, display the shark participation and deal summary table
-with col2:
-    # Create a DataFrame to summarize participation and deals
+with col2: 
     sharks_summary = pd.DataFrame({
         'Shark': list(participation_counts.keys()),
         'Total Presence (Pitches)': list(participation_counts.values()),
