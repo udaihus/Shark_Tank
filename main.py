@@ -29,7 +29,7 @@ names = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_dea
 
 # User filter to select a Shark or show all
 shark_names = ['ALL'] + [name.replace('_deal', '') for name in names]
-selected_shark = st.sidebar.selectbox("Select a shark to see the total investment", shark_names)
+selected_shark = st.sidebar.selectbox("Select a shark for Scorecard", shark_names)
 
 # Calculate total investment for the selected shark or all sharks
 if selected_shark == 'ALL':
@@ -189,7 +189,7 @@ shark_investment_df = pd.DataFrame({
 
 #st.title('Shark Tank India - Total Investment by Each Shark (in Crs)')
 st.markdown(
-    "<h3 style='text-align: center; color: #33;'>Shark Tank India - Total Investment by Each Shark (in Crs)</h3>",
+    "<h3 style='text-align: center; color: #4CAF50;'>Shark Tank India - Total Investment & Deal by Each Shark (in Crs)</h3>",
     unsafe_allow_html=True
 )
 # col6 = st.columns([1])
@@ -222,7 +222,7 @@ fig.add_trace(go.Scatter(
 
 # Add secondary y-axis for Total Investment Count
 fig.update_layout(
-    title="Total Investment and Deal Count by Each Shark",
+    #title="Total Investment and Deal Count by Each Shark",
     xaxis_title="Shark Name",
     yaxis_title="Total Investment (in Crs)",
     yaxis=dict(
@@ -260,14 +260,20 @@ with col6[0]:
 # Nissi Grace
 # Shark names and mappings
 # Sidebar for shark selection
-def top_brands_per_shark(shark_column, amount_column):
-    shark_investments = df[df[shark_column] > 0][['brand_name', amount_column]]
-    top_brands = shark_investments.sort_values(by=amount_column, ascending=False).head(5)
-    return top_brands
+# def top_brands_per_shark(shark_column, amount_column):
+#     shark_investments = df[df[shark_column] > 0][['brand_name', amount_column]]
+#     top_brands = shark_investments.sort_values(by=amount_column, ascending=False).head(5)
+#     return top_brands
 
-st.sidebar.header("Select Shark for Visualization")
+df['metric'] = (df['deal_amount'] * df['deal_equity']) / (df['total_sharks_invested']*100)
+def top_brands_per_shark(shark_column, amount_column): 
+    shark_investments = df[df[shark_column] > 0][['brand_name', 'metric']] 
+    top_brands = shark_investments.sort_values(by='metric', ascending=False).head(5)
+    return top_brands 
+
+# st.sidebar.header("Select Shark for Visualization")
 shark_selection = st.sidebar.selectbox(
-    "Select a Shark", 
+    "Select a Shark for individual Visualization", 
     ["Ashneer", "Anupam", "Aman", "Namita", "Vineeta", "Peyush", "Ghazal"], 
     index=0  # Default to Ashneer
 )
@@ -290,8 +296,7 @@ selected_shark_column = sharks[shark_selection]
 shark_deals = df[df[selected_shark_column] > 0]
 
 # --- Visualization 1: Line Plot ---
-
-st.subheader(f"Equity Comparison for {shark_selection}")
+st.markdown(f"<h3 style='text-align: center;color: #4CAF50;'>Equity Comparison for {shark_selection} based on different Brands</h3>", unsafe_allow_html=True)
 
 if not shark_deals.empty:
     # Line plot for `ask_equity`, `equity_per_shark`, and `deal_equity`
@@ -299,7 +304,7 @@ if not shark_deals.empty:
         shark_deals, 
         x="brand_name", 
         y=["ask_equity", "equity_per_shark", "deal_equity"], 
-        title=f"Equity Metrics for {shark_selection}",
+        #title=f"Equity Metrics for {shark_selection}",
         labels={"value": "Equity (%)", "variable": "Equity Type"},
         markers=True,  # Add markers for each point
         color_discrete_map={
@@ -317,24 +322,23 @@ if not shark_deals.empty:
 #-----------------------------------------------------------------------------------------------------
 # nissi  and shreyashi
 # --- Visualization 2: Bar Graph ---
-st.subheader(f"Top 5 Brands for {shark_selection} by Deal Equity")
+st.markdown(f"<h3 style='text-align: center;color: #4CAF50;'>Top 5 Brands for {shark_selection} by Value of Equity</h3>", unsafe_allow_html=True)
 
-# Get top 5 brands for the selected shark
-top_brands = top_brands_per_shark(selected_shark_column, "deal_equity")
+top_brands = top_brands_per_shark(selected_shark_column, "metric")
 
 if not top_brands.empty:
     bar_fig = px.bar(
         top_brands,
         x="brand_name",
-        y="deal_equity",
-        title=f"Top 5 Brands for {shark_selection}",
-        labels={"deal_equity": "Deal Equity", "brand_name": "Brand Name"},
+        y="metric",  # Changed to use the new metric
+        #title=f"Top 5 Brands for {shark_selection} by Value of equity",
+        labels={"metric": "Ownership Value", "brand_name": "Brand Name"},
         color="brand_name",  # Different colors for each bar
-        hover_data={"deal_equity": True}  # Show deal equity on hover
+        hover_data={"metric": True}  # Show metric on hover
     )
     bar_fig.update_layout(
         xaxis_title="Brand Name",
-        yaxis_title="Deal Equity",
+        yaxis_title="Ownership Value",  # Changed to reflect the new metric
         xaxis_tickangle=45,  # Rotate x-axis labels
         legend_title="Brand Names",
         bargap=0.4,
@@ -346,7 +350,7 @@ if not top_brands.empty:
             borderwidth=1
         )
     )
-    st.plotly_chart(bar_fig, use_container_width=True)
+    st.plotly_chart(bar_fig, use_container_width=True) 
 else:
     st.warning(f"No top brands found for {shark_selection}.")
 
@@ -424,6 +428,11 @@ with col2:
 #shreyshi code
 
 # List of shark columns (each representing a shark's deal)
+st.markdown(
+    "<h3 style='text-align: center; color: #4CAF50;'>Average Equity Per Shark</h3>",
+    unsafe_allow_html=True
+)
+
 shark_columns = ['ashneer_deal', 'anupam_deal', 'aman_deal', 'namita_deal', 'vineeta_deal', 'peyush_deal', 'ghazal_deal']
 equity_column = 'equity_per_shark'
 
@@ -463,7 +472,7 @@ fig_average_equity = px.bar(
     equity_df,
     x='Shark',
     y='Average Equity',
-    title="Average Equity per Shark",
+    #title="Average Equity per Shark",
     labels={'Average Equity': 'Average Equity (%)'},
     hover_data={'Average Equity': ':.2f'},
     color_discrete_sequence=['Orange'] 
@@ -474,4 +483,67 @@ fig_average_equity = px.bar(
 
 # Display the average equity chart
 st.plotly_chart(fig_average_equity)
+
+
+#------------------------------------------------------------------------------------------------------------
+# Neetu Kumari's Code:
+
+# st.markdown(
+#     "<h3 style='text-align: center; color: #33;'>Episode-wise Analysis</h3>",
+#     unsafe_allow_html=True
+# )
+
+# summary = df[df['deal'] == 1].groupby('episode_number').agg(total_deal_amount=('deal_amount', 'sum'),deal_count=('deal', 'count')).reset_index()
+
+# # st.dataframe(summary)
+# plt.figure(figsize=(10, 6))
+# plt.plot(summary['episode_number'], summary['total_deal_amount'], marker='o', label='Total Deal Amount')
+# plt.plot(summary['episode_number'], summary['deal_count'], marker='s', label='Deal Count')
+
+# # Step 3: Customize the plot
+
+# col9, col10 = st.columns([2,4])
+
+# with col9:
+#     # st.dataframe(summary)
+#     st.dataframe(summary.style.background_gradient(cmap='Blues', axis=0), use_container_width=True)
+
+# with col10:
+#     st.line_chart(summary)
+
+# Centered Title with better styling
+st.markdown(
+    "<h3 style='text-align: center; color: #4CAF50; font-weight: bold; font-family: Arial, sans-serif;'>Episode-wise Analysis</h3>",
+    unsafe_allow_html=True
+)
+
+# Grouping the data by episode_number to get the summary
+summary = df[df['deal'] == 1].groupby('episode_number').agg(
+    total_deal_amount=('deal_amount', 'sum'),
+    deal_count=('deal', 'count')
+).reset_index()
+
+# Round the 'total_deal_amount' column to the nearest integer
+summary['total_deal_amount'] = summary['total_deal_amount'].round(0).astype(int)
+
+# Creating columns for layout
+col9, col10 = st.columns([2, 4])
+
+# Displaying the DataFrame with styled background gradient and enhanced formatting
+with col9:
+    st.dataframe(
+        summary.style
+        .background_gradient(cmap='Blues', axis=0)  # Color gradient for background
+        #.highlight_max(axis=0, color='light green')      # Highlight the maximum value in each column
+        .set_table_styles([                        # Adding table styling
+            {'selector': 'thead th', 'props': [('background-color', '#4CAF50'), ('color', 'white')]},
+            {'selector': 'tbody td', 'props': [('padding', '10px'), ('border', '1px solid #ddd')]},
+            {'selector': 'thead', 'props': [('font-weight', 'bold'), ('font-size', '14px')]}
+        ]), 
+        use_container_width=True
+    )
+
+# Plot (if you still want to display the plot)
+with col10:
+    st.line_chart(summary.set_index('episode_number')[['total_deal_amount', 'deal_count']])
 
